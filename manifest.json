@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "SubMute",
+    "version": "1.0",
+    "description": "Adds a mute button to each subreddit in r/popular for quick muting.",
+    "permissions": [
+        "storage",
+        "scripting",
+        "activeTab"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "*://www.reddit.com/r/popular/*",
+                "*://reddit.com/r/popular/*"
+            ],
+            "css": [
+                "styles.css"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
+    "icons": {
+        "16": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "icon.png"
+    }
+}
