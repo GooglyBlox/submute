@@ -5,7 +5,6 @@
     "description": "Adds a mute button to each subreddit in r/popular for quick muting.",
     "permissions": [
         "storage",
-        "scripting",
         "activeTab"
     ],
     "content_scripts": [
