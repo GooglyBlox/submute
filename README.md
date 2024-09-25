@@ -5,6 +5,7 @@ SubMute is a Chrome extension that allows you to mute subreddits directly from [
 ![SubMute Preview](preview.gif)
 
 ## Installation
+[![Install from Chrome Web Store](https://developer.chrome.com/static/docs/webstore/branding/image/206x58-chrome-web-bcb82d15b2486.png)](https://chromewebstore.google.com/detail/submute/ipcibelokeebihhlpcjcpnggaafhgmdl)
 
 ### Method 1: Cloning via Git
 
