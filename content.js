@@ -37,7 +37,7 @@ function hideMutedPosts() {
             subredditLinks.forEach((link) => {
                 const href = link.getAttribute('href');
                 if (href && href.startsWith(`/r/${sub}/`)) {
-                    const shredditPost = link.closest('shreddit-post');
+                    const shredditPost = link.closest('shreddit-post') || link.closest('article');
                     if (shredditPost) {
                         shredditPost.style.display = 'none';
                     }
@@ -60,17 +60,18 @@ function addMuteButtons() {
         }
 
         joinButtons.forEach((joinButton) => {
-            if (joinButton.nextSibling && joinButton.nextSibling.classList && joinButton.nextSibling.classList.contains('mute-button')) {
+            if (
+                joinButton.nextSibling &&
+                joinButton.nextSibling.classList &&
+                joinButton.nextSibling.classList.contains('mute-button')
+            ) {
                 return;
             }
 
-            let shredditPost = joinButton.closest('shreddit-post');
+            let shredditPost = joinButton.closest('shreddit-post') || joinButton.closest('article');
             if (!shredditPost) {
-                shredditPost = joinButton.closest('article');
-                if (!shredditPost) {
-                    console.log('SubMute: No post container found for a join button.');
-                    return;
-                }
+                console.log('SubMute: No post container found for a join button.');
+                return;
             }
 
             const subredditLink = shredditPost.querySelector('a[data-testid="subreddit-name"]');
@@ -94,17 +95,33 @@ function addMuteButtons() {
     });
 }
 
-addMuteButtons();
-hideMutedPosts();
+function isOnTargetPage() {
+    const url = window.location.href;
+    return /^https?:\/\/(www\.)?reddit\.com\/r\/popular\/?/.test(url);
+}
+
+function handleUrlChange() {
+    if (isOnTargetPage()) {
+        addMuteButtons();
+        hideMutedPosts();
+    }
+}
+
+let lastUrl = window.location.href;
 
 const observer = new MutationObserver((mutations) => {
+    if (window.location.href !== lastUrl) {
+        lastUrl = window.location.href;
+        handleUrlChange();
+    }
+
     let shouldRun = false;
     mutations.forEach((mutation) => {
         if (mutation.addedNodes.length) {
             shouldRun = true;
         }
     });
-    if (shouldRun) {
+    if (shouldRun && isOnTargetPage()) {
         console.log('SubMute: Mutation detected, adding mute buttons.');
         addMuteButtons();
         hideMutedPosts();
@@ -112,3 +129,17 @@ const observer = new MutationObserver((mutations) => {
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (isOnTargetPage()) {
+            addMuteButtons();
+            hideMutedPosts();
+        }
+    });
+} else {
+    if (isOnTargetPage()) {
+        addMuteButtons();
+        hideMutedPosts();
+    }
+}
