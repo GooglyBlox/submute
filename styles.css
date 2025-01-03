@@ -79,10 +79,6 @@
     cursor: pointer;
 }
 
-body {
-    font-family: Arial, sans-serif;
-}
-
 #muted-list {
     max-height: 300px;
     overflow-y: auto;
