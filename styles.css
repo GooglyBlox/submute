@@ -1,103 +1,103 @@
 .mute-button {
-    background-color: #ff4500;
-    border: 1px solid #ff4500;
-    color: #ffffff;
-    cursor: pointer;
-    font-size: 12px;
-    margin-left: 8px;
-    padding: 0 12px;
-    height: 24px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s, border-color 0.3s;
-    position: relative;
-    z-index: 1;
+  background-color: #ff4500;
+  border: 1px solid #ff4500;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 8px;
+  padding: 0 12px;
+  height: 24px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, border-color 0.3s;
+  position: relative;
+  z-index: 1;
 }
 
 .mute-button:hover {
-    background-color: #e03d00;
-    border-color: #e03d00;
+  background-color: #e03d00;
+  border-color: #e03d00;
 }
 
 .mute-button:active {
-    background-color: #c0392b;
-    border-color: #c0392b;
+  background-color: #c0392b;
+  border-color: #c0392b;
 }
 
 .mute-button:disabled {
-    background-color: #cccccc;
-    border-color: #cccccc;
-    color: #666666;
-    cursor: default;
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: #666666;
+  cursor: default;
 }
 
 .mute-button:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.5);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.5);
 }
 
 .shreddit-post .mute-button {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 #search-input {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    background-color: #2c2c2c;
-    color: #f1f1f1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #2c2c2c;
+  color: #f1f1f1;
 }
 
 #search-input::placeholder {
-    color: #888888;
+  color: #888888;
 }
 
 .sort-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .sort-container input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .sort-container label {
-    font-size: 14px;
-    cursor: pointer;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 #muted-list {
-    max-height: 300px;
-    overflow-y: auto;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 #muted-list::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 #muted-list::-webkit-scrollbar-track {
-    background: #1a1a1b;
-    border-radius: 3px;
+  background: #1a1a1b;
+  border-radius: 3px;
 }
 
 #muted-list::-webkit-scrollbar-thumb {
-    background: #ff4500;
-    border-radius: 3px;
+  background: #ff4500;
+  border-radius: 3px;
 }
 
 #muted-list::-webkit-scrollbar-thumb:hover {
-    background: #e03d00;
+  background: #e03d00;
 }

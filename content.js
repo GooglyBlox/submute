@@ -1,145 +1,149 @@
-function createMuteButton(subreddit) {
-    const button = document.createElement('button');
-    button.innerText = 'Mute';
-    button.className = 'mute-button button-secondary button-x-small button join-btn leading-none h-[24px]';
-    button.onclick = () => {
-        muteSubreddit(subreddit);
-        button.disabled = true;
-        button.innerText = 'Muted';
-    };
-    return button;
-}
+const createMuteControl = (subreddit) => {
+  const button = document.createElement("button");
+  button.innerText = "Mute";
+  button.className =
+    "mute-button button-secondary button-x-small button join-btn leading-none h-[24px]";
+  button.onclick = () => {
+    toggleSubredditMute(subreddit);
+    button.disabled = true;
+    button.innerText = "Muted";
+  };
+  return button;
+};
 
-function muteSubreddit(subreddit) {
-    chrome.storage.sync.get(['mutedSubreddits'], (result) => {
-        let muted = result.mutedSubreddits || [];
-        if (!muted.includes(subreddit)) {
-            muted.push(subreddit);
-            chrome.storage.sync.set({ mutedSubreddits: muted }, () => {
-                if (chrome.runtime.lastError) {
-                    console.error(`Error muting subreddit: ${chrome.runtime.lastError}`);
-                    return;
-                }
-                console.log(`Muted subreddit: ${subreddit}`);
-                hideMutedPosts();
-            });
-        }
-    });
-}
-
-function hideMutedPosts() {
-    chrome.storage.sync.get(['mutedSubreddits'], (result) => {
-        const muted = result.mutedSubreddits || [];
-        if (muted.length === 0) return;
-
-        muted.forEach((sub) => {
-            const subredditLinks = document.querySelectorAll(`a[data-testid="subreddit-name"]`);
-            subredditLinks.forEach((link) => {
-                const href = link.getAttribute('href');
-                if (href && href.startsWith(`/r/${sub}/`)) {
-                    const shredditPost = link.closest('shreddit-post') || link.closest('article');
-                    if (shredditPost) {
-                        shredditPost.style.display = 'none';
-                    }
-                }
-            });
-        });
-    });
-}
-
-function addMuteButtons() {
-    chrome.storage.sync.get(['mutedSubreddits'], (result) => {
-        const muted = result.mutedSubreddits || [];
-        let joinButtons = document.querySelectorAll('shreddit-join-button');
-
-        if (joinButtons.length === 0) {
-            joinButtons = document.querySelectorAll('button[aria-label="Join"]');
-            console.log(`SubMute: Found ${joinButtons.length} fallback join buttons.`);
-        } else {
-            console.log(`SubMute: Found ${joinButtons.length} join buttons.`);
-        }
-
-        joinButtons.forEach((joinButton) => {
-            if (
-                joinButton.nextSibling &&
-                joinButton.nextSibling.classList &&
-                joinButton.nextSibling.classList.contains('mute-button')
-            ) {
-                return;
-            }
-
-            let shredditPost = joinButton.closest('shreddit-post') || joinButton.closest('article');
-            if (!shredditPost) {
-                console.log('SubMute: No post container found for a join button.');
-                return;
-            }
-
-            const subredditLink = shredditPost.querySelector('a[data-testid="subreddit-name"]');
-            if (!subredditLink) {
-                console.log('SubMute: Subreddit link not found within a post.');
-                return;
-            }
-
-            const subreddit = subredditLink.innerText.replace(/^r\//, '').trim();
-            console.log(`SubMute: Processing subreddit: r/${subreddit}`);
-
-            if (muted.includes(subreddit)) {
-                console.log(`SubMute: Subreddit r/${subreddit} is already muted.`);
-                shredditPost.style.display = 'none';
-                return;
-            }
-
-            const muteBtn = createMuteButton(subreddit);
-            joinButton.parentNode.insertBefore(muteBtn, joinButton.nextSibling);
-        });
-    });
-}
-
-function isOnTargetPage() {
-    const url = window.location.href;
-    return /^https?:\/\/(www\.)?reddit\.com\/r\/popular\/?/.test(url);
-}
-
-function handleUrlChange() {
-    if (isOnTargetPage()) {
-        addMuteButtons();
-        hideMutedPosts();
+const toggleSubredditMute = (subreddit) => {
+  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+    const mutedList = result.mutedSubreddits || [];
+    if (!mutedList.includes(subreddit)) {
+      mutedList.push(subreddit);
+      updateMutedSubreddits(mutedList);
     }
-}
+  });
+};
 
-let lastUrl = window.location.href;
+const updateMutedSubreddits = (mutedList) => {
+  chrome.storage.sync.set({ mutedSubreddits: mutedList }, () => {
+    if (chrome.runtime.lastError) {
+      console.error(`SubMute: Storage error - ${chrome.runtime.lastError}`);
+      return;
+    }
+    updateFeed();
+  });
+};
 
-const observer = new MutationObserver((mutations) => {
-    if (window.location.href !== lastUrl) {
-        lastUrl = window.location.href;
-        handleUrlChange();
+const updateFeed = () => {
+  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+    const mutedList = result.mutedSubreddits || [];
+    if (mutedList.length === 0) return;
+
+    const subredditPosts = document.querySelectorAll(
+      'a[data-testid="subreddit-name"]'
+    );
+    subredditPosts.forEach((link) => {
+      const subredditPath = link.getAttribute("href");
+      const shouldHide = mutedList.some((sub) =>
+        subredditPath?.startsWith(`/r/${sub}/`)
+      );
+
+      if (shouldHide) {
+        const postContainer =
+          link.closest("shreddit-post") || link.closest("article");
+        if (postContainer) {
+          postContainer.style.display = "none";
+        }
+      }
+    });
+  });
+};
+
+const initializeMuteControls = () => {
+  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+    const mutedList = result.mutedSubreddits || [];
+    const joinButtons = getJoinButtons();
+
+    joinButtons.forEach((joinButton) => {
+      if (hasExistingMuteControl(joinButton)) return;
+
+      const postData = extractPostData(joinButton);
+      if (!postData) return;
+
+      const { container, subreddit } = postData;
+
+      if (mutedList.includes(subreddit)) {
+        container.style.display = "none";
+        return;
+      }
+
+      const muteButton = createMuteControl(subreddit);
+      joinButton.parentNode.insertBefore(muteButton, joinButton.nextSibling);
+    });
+  });
+};
+
+const getJoinButtons = () => {
+  const primary = document.querySelectorAll("shreddit-join-button");
+  return primary.length > 0
+    ? primary
+    : document.querySelectorAll('button[aria-label="Join"]');
+};
+
+const hasExistingMuteControl = (button) => {
+  return button.nextSibling?.classList?.contains("mute-button");
+};
+
+const extractPostData = (joinButton) => {
+  const container =
+    joinButton.closest("shreddit-post") || joinButton.closest("article");
+  if (!container) return null;
+
+  const subredditLink = container.querySelector(
+    'a[data-testid="subreddit-name"]'
+  );
+  if (!subredditLink) return null;
+
+  const subreddit = subredditLink.innerText.replace(/^r\//, "").trim();
+  return { container, subreddit };
+};
+
+const isPopularFeed = () => {
+  return /^https?:\/\/(www\.)?reddit\.com\/r\/popular\/?/.test(
+    window.location.href
+  );
+};
+
+const handleUrlChange = () => {
+  if (isPopularFeed()) {
+    initializeMuteControls();
+    updateFeed();
+  }
+};
+
+let currentUrl = window.location.href;
+
+const initializeObserver = () => {
+  const observer = new MutationObserver((mutations) => {
+    if (window.location.href !== currentUrl) {
+      currentUrl = window.location.href;
+      handleUrlChange();
+      return;
     }
 
-    let shouldRun = false;
-    mutations.forEach((mutation) => {
-        if (mutation.addedNodes.length) {
-            shouldRun = true;
-        }
-    });
-    if (shouldRun && isOnTargetPage()) {
-        console.log('SubMute: Mutation detected, adding mute buttons.');
-        addMuteButtons();
-        hideMutedPosts();
+    if (
+      mutations.some((mutation) => mutation.addedNodes.length) &&
+      isPopularFeed()
+    ) {
+      initializeMuteControls();
+      updateFeed();
     }
-});
+  });
 
-observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true });
+};
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (isOnTargetPage()) {
-            addMuteButtons();
-            hideMutedPosts();
-        }
-    });
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", handleUrlChange);
 } else {
-    if (isOnTargetPage()) {
-        addMuteButtons();
-        hideMutedPosts();
-    }
+  handleUrlChange();
 }
+
+initializeObserver();
