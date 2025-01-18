@@ -106,44 +106,71 @@ const extractPostData = (joinButton) => {
 };
 
 const isPopularFeed = () => {
-  return /^https?:\/\/(www\.)?reddit\.com\/r\/popular\/?/.test(
+  const isPopularUrl = /^https?:\/\/(www\.)?reddit\.com\/r\/popular\/?/.test(
     window.location.href
   );
+  const hasPopularInPath = window.location.pathname.includes("/r/popular");
+  return isPopularUrl || hasPopularInPath;
 };
 
-const handleUrlChange = () => {
+let debounceTimeout;
+const debounce = (func, wait) => {
+  clearTimeout(debounceTimeout);
+  debounceTimeout = setTimeout(func, wait);
+};
+
+const handleNavigationChange = () => {
   if (isPopularFeed()) {
-    initializeMuteControls();
-    updateFeed();
+    debounce(() => {
+      initializeMuteControls();
+      updateFeed();
+    }, 100);
   }
 };
 
-let currentUrl = window.location.href;
+const setupNavigationWatcher = () => {
+  if ("navigation" in window) {
+    window.navigation.addEventListener("navigate", () => {
+      handleNavigationChange();
+    });
 
-const initializeObserver = () => {
+    window.navigation.addEventListener("navigatesuccess", () => {
+      handleNavigationChange();
+    });
+  }
+
   const observer = new MutationObserver((mutations) => {
-    if (window.location.href !== currentUrl) {
-      currentUrl = window.location.href;
-      handleUrlChange();
-      return;
-    }
-
-    if (
-      mutations.some((mutation) => mutation.addedNodes.length) &&
-      isPopularFeed()
-    ) {
-      initializeMuteControls();
-      updateFeed();
+    if (mutations.some((mutation) => mutation.addedNodes.length > 0)) {
+      handleNavigationChange();
     }
   });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  let lastUrl = window.location.href;
+  new MutationObserver(() => {
+    const currentUrl = window.location.href;
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl;
+      handleNavigationChange();
+    }
+  }).observe(document.documentElement, { subtree: true, childList: true });
 };
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", handleUrlChange);
+  document.addEventListener("DOMContentLoaded", () => {
+    setupNavigationWatcher();
+    handleNavigationChange();
+  });
 } else {
-  handleUrlChange();
+  setupNavigationWatcher();
+  handleNavigationChange();
 }
 
-initializeObserver();
+window.addEventListener("load", handleNavigationChange);
+window.addEventListener("popstate", handleNavigationChange);
+window.addEventListener("pushstate", handleNavigationChange);
+window.addEventListener("replacestate", handleNavigationChange);
