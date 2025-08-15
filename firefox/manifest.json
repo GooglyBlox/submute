@@ -23,8 +23,8 @@
   },
   "applications": {
     "gecko": {
-      "id": "submute@googlyblox.github.io",
-      "strict_min_version": "57.0"
+      "id": "submute@notaspider.dev",
+      "strict_min_version": "58.0"
     }
   }
 }
