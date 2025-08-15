@@ -20,7 +20,7 @@ SubMute is a Chrome (and now Firefox!) extension that allows you to mute subredd
 2. **Load Unpacked Extension:**
    - Open Chrome and navigate to `chrome://extensions/`.
    - Enable **Developer mode**.
-   - Click **Load unpacked** and select the cloned `submute` directory.
+   - Click **Load unpacked** and select the `chrome` directory within the cloned `submute` directory.
 
 3. **Verify Installation:**
    - Once loaded, you should see the **SubMute** icon appear in the Chrome toolbar.
@@ -56,7 +56,7 @@ SubMute is a Chrome (and now Firefox!) extension that allows you to mute subredd
 2. **Load the Extension:**
    - Open Firefox and navigate to `about:debugging`.
    - Click **This Firefox**.
-   - Click **Load Temporary Add-on** and select the `manifest.json` file from the cloned `submute` directory.
+   - Click **Load Temporary Add-on** and select the `manifest.json` file from the `firefox` directory within the cloned `submute` directory.
 
 3. **Verify Installation:**
    - Once loaded, you should see the **SubMute** icon appear in the Firefox toolbar.
