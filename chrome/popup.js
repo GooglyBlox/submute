@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let mutedSubreddits = [];
 
-  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+  chrome.storage.local.get(["mutedSubreddits"], (result) => {
     mutedSubreddits = result.mutedSubreddits || [];
     renderList();
   });
@@ -62,10 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function removeSubreddit(subreddit) {
-    chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+    chrome.storage.local.get(["mutedSubreddits"], (result) => {
       let muted = result.mutedSubreddits || [];
       muted = muted.filter((s) => s !== subreddit);
-      chrome.storage.sync.set({ mutedSubreddits: muted }, () => {
+      chrome.storage.local.set({ mutedSubreddits: muted }, () => {
         if (chrome.runtime.lastError) {
           console.error(
             `Error unmuting subreddit: ${chrome.runtime.lastError}`

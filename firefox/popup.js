@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let mutedSubreddits = [];
 
-  browser.storage.sync
+  browser.storage.local
     .get(["mutedSubreddits"])
     .then((result) => {
       mutedSubreddits = result.mutedSubreddits || [];
@@ -67,12 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function removeSubreddit(subreddit) {
-    browser.storage.sync
+    browser.storage.local
       .get(["mutedSubreddits"])
       .then((result) => {
         let muted = result.mutedSubreddits || [];
         muted = muted.filter((s) => s !== subreddit);
-        return browser.storage.sync.set({ mutedSubreddits: muted });
+        return browser.storage.local.set({ mutedSubreddits: muted });
       })
       .then(() => {
         return browser.tabs.query({ active: true, currentWindow: true });

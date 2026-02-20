@@ -1,3 +1,39 @@
+const migrateFromSyncToLocal = (callback) => {
+  chrome.storage.local.get(["mutedSubreddits"], (localResult) => {
+    if (localResult.mutedSubreddits) {
+      callback();
+      return;
+    }
+    chrome.storage.sync.get(["mutedSubreddits"], (syncResult) => {
+      if (chrome.runtime.lastError || !syncResult.mutedSubreddits) {
+        callback();
+        return;
+      }
+      chrome.storage.local.set(
+        { mutedSubreddits: syncResult.mutedSubreddits },
+        () => {
+          if (!chrome.runtime.lastError) {
+            chrome.storage.sync.remove("mutedSubreddits");
+          }
+          callback();
+        }
+      );
+    });
+  });
+};
+
+migrateFromSyncToLocal(() => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      setupNavigationWatcher();
+      handleNavigationChange();
+    });
+  } else {
+    setupNavigationWatcher();
+    handleNavigationChange();
+  }
+});
+
 const createMuteControl = (subreddit) => {
   const button = document.createElement("button");
   button.innerText = "Mute";
@@ -12,7 +48,7 @@ const createMuteControl = (subreddit) => {
 };
 
 const toggleSubredditMute = (subreddit) => {
-  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+  chrome.storage.local.get(["mutedSubreddits"], (result) => {
     const mutedList = result.mutedSubreddits || [];
     if (!mutedList.includes(subreddit)) {
       mutedList.push(subreddit);
@@ -22,7 +58,7 @@ const toggleSubredditMute = (subreddit) => {
 };
 
 const updateMutedSubreddits = (mutedList) => {
-  chrome.storage.sync.set({ mutedSubreddits: mutedList }, () => {
+  chrome.storage.local.set({ mutedSubreddits: mutedList }, () => {
     if (chrome.runtime.lastError) {
       console.error(`SubMute: Storage error - ${chrome.runtime.lastError}`);
       return;
@@ -32,7 +68,7 @@ const updateMutedSubreddits = (mutedList) => {
 };
 
 const updateFeed = () => {
-  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+  chrome.storage.local.get(["mutedSubreddits"], (result) => {
     const mutedList = result.mutedSubreddits || [];
     if (mutedList.length === 0) return;
 
@@ -57,7 +93,7 @@ const updateFeed = () => {
 };
 
 const initializeMuteControls = () => {
-  chrome.storage.sync.get(["mutedSubreddits"], (result) => {
+  chrome.storage.local.get(["mutedSubreddits"], (result) => {
     const mutedList = result.mutedSubreddits || [];
     const joinButtons = getJoinButtons();
 
@@ -159,16 +195,6 @@ const setupNavigationWatcher = () => {
     }
   }).observe(document.documentElement, { subtree: true, childList: true });
 };
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    setupNavigationWatcher();
-    handleNavigationChange();
-  });
-} else {
-  setupNavigationWatcher();
-  handleNavigationChange();
-}
 
 window.addEventListener("load", handleNavigationChange);
 window.addEventListener("popstate", handleNavigationChange);

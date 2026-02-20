@@ -1,3 +1,29 @@
+const migrateFromSyncToLocal = () => {
+  return browser.storage.local.get(["mutedSubreddits"]).then((localResult) => {
+    if (localResult.mutedSubreddits) return;
+    return browser.storage.sync
+      .get(["mutedSubreddits"])
+      .then((syncResult) => {
+        if (!syncResult.mutedSubreddits) return;
+        return browser.storage.local
+          .set({ mutedSubreddits: syncResult.mutedSubreddits })
+          .then(() => browser.storage.sync.remove("mutedSubreddits"));
+      });
+  });
+};
+
+migrateFromSyncToLocal().then(() => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      setupNavigationWatcher();
+      handleNavigationChange();
+    });
+  } else {
+    setupNavigationWatcher();
+    handleNavigationChange();
+  }
+});
+
 const createMuteControl = (subreddit) => {
   const button = document.createElement("button");
   button.innerText = "Mute";
@@ -12,7 +38,7 @@ const createMuteControl = (subreddit) => {
 };
 
 const toggleSubredditMute = (subreddit) => {
-  browser.storage.sync
+  browser.storage.local
     .get(["mutedSubreddits"])
     .then((result) => {
       const mutedList = result.mutedSubreddits || [];
@@ -27,7 +53,7 @@ const toggleSubredditMute = (subreddit) => {
 };
 
 const updateMutedSubreddits = (mutedList) => {
-  browser.storage.sync
+  browser.storage.local
     .set({ mutedSubreddits: mutedList })
     .then(() => {
       updateFeed();
@@ -38,7 +64,7 @@ const updateMutedSubreddits = (mutedList) => {
 };
 
 const updateFeed = () => {
-  browser.storage.sync
+  browser.storage.local
     .get(["mutedSubreddits"])
     .then((result) => {
       const mutedList = result.mutedSubreddits || [];
@@ -68,7 +94,7 @@ const updateFeed = () => {
 };
 
 const initializeMuteControls = () => {
-  browser.storage.sync
+  browser.storage.local
     .get(["mutedSubreddits"])
     .then((result) => {
       const mutedList = result.mutedSubreddits || [];
@@ -175,16 +201,6 @@ const setupNavigationWatcher = () => {
     }
   }).observe(document.documentElement, { subtree: true, childList: true });
 };
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    setupNavigationWatcher();
-    handleNavigationChange();
-  });
-} else {
-  setupNavigationWatcher();
-  handleNavigationChange();
-}
 
 window.addEventListener("load", handleNavigationChange);
 window.addEventListener("popstate", handleNavigationChange);
