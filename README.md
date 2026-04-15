@@ -43,8 +43,7 @@ SubMute is a Chrome (and now Firefox!) extension that allows you to mute subredd
    - Once loaded, you should see the **SubMute** icon appear in the Chrome toolbar.
 
 ### Firefox Version
-
-[![Get the add-on](https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png)](https://addons.mozilla.org/en-US/firefox/addon/submute)
+Mozilla without notice has deactivated my Mozilla Developer account and removed SubMute from the Mozilla Addon Store. I'll be investigating the reasoning and contacting support, but in the meantime you can download the official Firefox version via the methods below:
 
 #### Method 1: Cloning via Git
 
